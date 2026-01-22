@@ -174,6 +174,36 @@ class DownBlock(nn.Module):
         return x, hs
 
 
+# class UpBlock(nn.Module):
+#     def __init__(self, in_ch, out_ch, skip_ch, temb_ch, num_res_blocks, dropout, attn_resolutions, curr_res,
+#                  has_upsample, resamp_with_conv):
+#         super().__init__()
+#         self.block = nn.ModuleList()
+#         self.attn = nn.ModuleList()
+#         self.has_upsample = has_upsample
+#         self.num_res_blocks = num_res_blocks
+
+#         for i_block in range(num_res_blocks + 1):
+#             self.block.append(ResnetBlock(in_ch + skip_ch, out_ch, temb_ch, dropout))
+#             in_ch = out_ch
+#             if curr_res in attn_resolutions:
+#                 self.attn.append(AttnBlock(out_ch))
+
+#         if has_upsample:
+#             self.upsample = Upsample(out_ch, resamp_with_conv)
+
+#     def forward(self, x, hs, temb):
+#         for i_block in range(self.num_res_blocks + 1):
+#             x = torch.cat([x, hs.pop()], dim=1)
+#             x = self.block[i_block](x, temb)
+#             if i_block < len(self.attn):
+#                 x = self.attn[i_block](x)
+
+#         if self.has_upsample:
+#             x = self.upsample(x)
+
+#         return x
+
 class UpBlock(nn.Module):
     def __init__(self, in_ch, out_ch, skip_ch, temb_ch, num_res_blocks, dropout, attn_resolutions, curr_res,
                  has_upsample, resamp_with_conv):
@@ -182,26 +212,23 @@ class UpBlock(nn.Module):
         self.attn = nn.ModuleList()
         self.has_upsample = has_upsample
         self.num_res_blocks = num_res_blocks
-
         for i_block in range(num_res_blocks + 1):
-            self.block.append(ResnetBlock(in_ch + skip_ch, out_ch, temb_ch, dropout))
-            in_ch = out_ch
+            cur_in_ch = (in_ch + skip_ch) if i_block == 0 else out_ch
+            self.block.append(ResnetBlock(cur_in_ch, out_ch, temb_ch, dropout))
             if curr_res in attn_resolutions:
                 self.attn.append(AttnBlock(out_ch))
-
         if has_upsample:
             self.upsample = Upsample(out_ch, resamp_with_conv)
 
     def forward(self, x, hs, temb):
         for i_block in range(self.num_res_blocks + 1):
-            x = torch.cat([x, hs.pop()], dim=1)
+            skip = hs.pop()
+            x = torch.cat([x, skip], dim=1)
             x = self.block[i_block](x, temb)
             if i_block < len(self.attn):
                 x = self.attn[i_block](x)
-
         if self.has_upsample:
             x = self.upsample(x)
-
         return x
 
 
