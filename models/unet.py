@@ -212,14 +212,14 @@ class UpBlock(nn.Module):
         self.attn = nn.ModuleList()
         self.has_upsample = has_upsample
         self.num_res_blocks = num_res_blocks
+        block_in = in_ch + skip_ch
         for i_block in range(num_res_blocks + 1):
-            cur_in_ch = (in_ch + skip_ch) if i_block == 0 else out_ch
-            self.block.append(ResnetBlock(cur_in_ch, out_ch, temb_ch, dropout))
+            self.block.append(ResnetBlock(block_in, out_ch, temb_ch, dropout))
+            block_in = out_ch + skip_ch 
             if curr_res in attn_resolutions:
                 self.attn.append(AttnBlock(out_ch))
         if has_upsample:
             self.upsample = Upsample(out_ch, resamp_with_conv)
-
     def forward(self, x, hs, temb):
         for i_block in range(self.num_res_blocks + 1):
             skip = hs.pop()
@@ -230,7 +230,6 @@ class UpBlock(nn.Module):
         if self.has_upsample:
             x = self.upsample(x)
         return x
-
 
 class DiffusionUNet(nn.Module):
     def __init__(
