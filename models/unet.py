@@ -280,6 +280,8 @@ class DiffusionUNet(nn.Module):
         nn.init.zeros_(self.conv_out.bias)
 
     def forward(self, x, t):
+        if t.ndim > 1:
+          t = t.view(-1)
         # Timestep embedding
         temb = get_timestep_embedding(t, self.ch)
         temb = self.temb_dense0(temb)
