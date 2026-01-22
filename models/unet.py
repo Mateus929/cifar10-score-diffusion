@@ -212,8 +212,11 @@ class UpBlock(nn.Module):
         self.attn = nn.ModuleList()
         self.has_upsample = has_upsample
         self.num_res_blocks = num_res_blocks
-        block_in = in_ch + skip_ch
         for i_block in range(num_res_blocks + 1):
+            if i_block == 0:
+                block_in = in_ch + skip_ch
+            else:
+                block_in = out_ch + skip_ch  
             self.block.append(ResnetBlock(block_in, out_ch, temb_ch, dropout))
             block_in = out_ch + skip_ch 
             if curr_res in attn_resolutions:
