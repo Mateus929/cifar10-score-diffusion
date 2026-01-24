@@ -135,8 +135,8 @@ def evaluate_dsm(model, config, train_loader=None, test_loader=None, log_wanbd=F
 
     print("Calculating FID and IS scores...")
 
-    test_metrics = get_metric_scores(test_loader, fake_images)
-    train_metrics = get_metric_scores(train_loader, fake_images)
+    test_metrics = get_metric_scores(test_loader, fake_images, "test")
+    train_metrics = get_metric_scores(train_loader, fake_images, "train")
 
     if log_wanbd:
         wandb.log({

@@ -8,7 +8,6 @@ from tqdm import tqdm
 import os
 
 BASE_WORK_DIR = os.environ.get("BASE_WORK_DIR")
-REAL_FEATURES_CACHE = os.path.join(BASE_WORK_DIR, "real_features.npy")
 
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
@@ -91,12 +90,13 @@ def calculate_inception_score(probs, splits=10):
         scores.append(np.exp(kl))
     return float(np.mean(scores)), float(np.std(scores))
 
-def get_metric_scores(real_images, generated_images):
-    if os.path.exists(REAL_FEATURES_CACHE):
-        real_features = np.load(REAL_FEATURES_CACHE)
+def get_metric_scores(real_images, generated_images, split_name="test"):
+    cache_path = os.path.join(BASE_WORK_DIR, f"real_features_{split_name}.npy")
+    if os.path.exists(cache_path):
+        real_features = np.load(cache_path)
     else:
         real_features, _ = get_metrics_data(real_images)
-        np.save(REAL_FEATURES_CACHE, real_features)
+        np.save(cache_path, real_features)
     fake_features, fake_probs = get_metrics_data(generated_images)
     fid = calculate_fid(real_features, fake_features)
     is_mean, is_std = calculate_inception_score(fake_probs)
