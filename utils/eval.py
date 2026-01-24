@@ -17,11 +17,13 @@ EPS = 1e-6
 _feat_model = None
 _prob_model = None
 
+
 def get_inception_model(device="cuda", features_only=True):
     weights = models.Inception_V3_Weights.DEFAULT
-    model = models.inception_v3(weights=weights, aux_logits=False, transform_input=False)
+    model = models.inception_v3(weights=weights, aux_logits=True, transform_input=False)
     if features_only:
         model.fc = nn.Identity()
+    model.aux_logits = False
     model.eval().to(device)
     return model
 
@@ -31,25 +33,39 @@ def preprocess_batch(x):
     x = F.interpolate(x, size=(299, 299), mode="bilinear", align_corners=False)
     return _normalize(x)
 
-@torch.no_grad()
-def get_metrics_data(images, batch_size=64, device="cuda"):
-    global _feat_model, _prob_model
-    if _feat_model is None:
-        _feat_model = get_inception_model(device, features_only=True)
-        _prob_model = get_inception_model(device, features_only=False)
 
-    if images.min() < 0:
-        images = (images + 1) / 2
-    images = images.clamp(0, 1)
+@torch.no_grad()
+def get_metrics_data(images, batch_size=128, device="cuda"):
+    global _prob_model
+    if _prob_model is None:
+        _prob_model = get_inception_model(device, features_only=False)
 
     features = []
     probs = []
 
-    for i in tqdm(range(0, len(images), batch_size)):
-        batch = images[i:i + batch_size].to(device)
-        batch = preprocess_batch(batch)
-        features.append(_feat_model(batch).cpu().numpy())
-        probs.append(F.softmax(_prob_model(batch), dim=1).cpu().numpy())
+    def get_features(module, input, output):
+        features.append(output.view(output.size(0), -1).cpu().numpy())
+
+    handle = _prob_model.avgpool.register_forward_hook(get_features)
+
+    if isinstance(images, torch.Tensor):
+        dataset = torch.utils.data.TensorDataset(images)
+        loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size)
+    else:
+        loader = images
+
+    try:
+        for batch in tqdm(loader, desc="FID/IS Progress"):
+            img_batch = batch[0] if isinstance(batch, (list, tuple)) else batch
+
+            if img_batch.min() < 0: img_batch = (img_batch + 1) / 2
+            img_batch = img_batch.clamp(0, 1).to(device)
+            img_batch = preprocess_batch(img_batch)
+
+            logits = _prob_model(img_batch)
+            probs.append(F.softmax(logits, dim=1).cpu().numpy())
+    finally:
+        handle.remove()
 
     return np.concatenate(features, axis=0), np.concatenate(probs, axis=0)
 

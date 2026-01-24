@@ -1,4 +1,3 @@
-import configparser
 import os
 import torch
 import uuid
@@ -6,6 +5,7 @@ import uuid
 
 from generators.dsm_sampler import dsm_sampler
 from models.unet import DiffusionUNet
+from models.simple_score_net import ScoreNet
 from utils.data_loader import load_cifar10
 from utils.eval import get_metric_scores
 from utils.losses import dsm_loss
@@ -14,6 +14,12 @@ from utils.checkpoint_manager import CheckpointManager
 
 BASE_WORK_DIR = os.environ.get("BASE_WORK_DIR")
 CHECKPOINT_DIR = os.path.join(BASE_WORK_DIR, "checkpoints")
+
+model_mappings = {
+    "score-net": ScoreNet(),
+    "unet": DiffusionUNet(),
+}
+
 
 def train_dsm(config):
     """
@@ -31,6 +37,7 @@ def train_dsm(config):
     - resume_training (bool): If True, loads latest checkpoint. Default: False.
     - eval (bool): Whether to run evaluation after training. Default: False.
     - run_id (str, optional): Specific ID to resume a W&B run.
+    - model_name (str, optional): Architecture that will be used. Default: unet.
 
     Remarks:
     - In case of eval = True, refer to `dsm_sampler` for configuration parameters used during the evaluation phase.
@@ -46,14 +53,15 @@ def train_dsm(config):
     )
 
     sigma_min = config.get("sigma_min", 0.01)
-    sigma_max = config.get("sigma_max", 0.05)
+    sigma_max = config.get("sigma_max", 50.0)
     T = config.get("T", 1)
 
     total_epochs = config["epochs"]
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    s = DiffusionUNet().to(device)
+    model_name = config.get("model_name", "unet")
+    s = model_mappings[model_name].to(device)
     optimizer = torch.optim.Adam(s.parameters(), lr=config["lr"])
     train_loader, test_loader = load_cifar10(batch_size=config.get("batch_size", 128))
 
