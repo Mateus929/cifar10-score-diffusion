@@ -8,7 +8,7 @@ from models.unet import DiffusionUNet
 from models.simple_score_net import ScoreNet
 from utils.data_loader import load_cifar10
 from utils.eval import get_metric_scores
-from utils.losses import dsm_loss
+from utils.losses import dsm_loss, dsm_loss_fixed_lambda
 import wandb
 from utils.checkpoint_manager import CheckpointManager
 
@@ -96,8 +96,7 @@ def train_dsm(config):
             x_noisy = x + epsilon * sigma
             y = s(x_noisy, t)
 
-            lambda_t = sigma ** 2
-            loss = dsm_loss(y, epsilon, sigma, lambda_t)
+            loss = dsm_loss_fixed_lambda(y, epsilon, sigma)
             loss.backward()
             optimizer.step()
 
