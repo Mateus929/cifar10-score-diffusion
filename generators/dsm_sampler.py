@@ -22,6 +22,7 @@ def dsm_sampler(model, config, device):
     batch_size : int
     n_steps_per_sigma : int
     step_size_factor : float
+    num_slices: int
     """
 
     model.eval()
@@ -36,7 +37,7 @@ def dsm_sampler(model, config, device):
     n_steps_per_sigma = config.get("n_steps_per_sigma", 100)
     step_size_factor = config.get("step_size_factor", 0.01)
 
-    timesteps = torch.linspace(T, 1e-3, 100, device=device)
+    timesteps = torch.linspace(T, 1e-3, config.get("num_slices", 50), device=device)
 
     sigmas = sigma_min * torch.sqrt(
         (sigma_max / sigma_min) ** (2 * timesteps / T) - 1.0
