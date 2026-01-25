@@ -11,6 +11,7 @@ def dsm_loss_fixed_lambda(score_pred, epsilon, sigma):
     loss = 0.5 * torch.mean(torch.sum((score_pred * sigma + epsilon) ** 2, dim=[1, 2, 3]))
     return loss
 
-def vp_score_loss(score, epsilon, sigma):
-    target = -epsilon / sigma
-    return torch.mean((score - target) ** 2)
+def ncsn_loss(score_noisy, epsilon, sigma):
+    diff = score_noisy + epsilon
+    loss = 0.5 * (diff ** 2).mean(dim=(1, 2, 3))
+    return loss.mean()
