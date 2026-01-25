@@ -11,6 +11,7 @@ from utils.eval import get_metric_scores
 from utils.losses import dsm_loss, dsm_loss_fixed_lambda
 import wandb
 from utils.checkpoint_manager import CheckpointManager
+import torchvision.transforms as TT
 
 BASE_WORK_DIR = os.environ.get("BASE_WORK_DIR")
 CHECKPOINT_DIR = os.path.join(BASE_WORK_DIR, "checkpoints")
@@ -147,6 +148,13 @@ def evaluate_dsm(model, config, train_loader=None, test_loader=None, log_wanbd=F
             "metrics/is_train_mean": train_metrics['IS_MEAN'],
             "metrics/is_train_std": train_metrics['IS_STD'],
         })
+
+    samples = fake_images[:4]
+    samples = ((samples + 1.0) * 0.5 * 255).clamp(0, 255).byte()
+
+    for i, img in enumerate(samples):
+        img = img.permute(1, 2, 0).cpu().numpy()
+        wandb.log({f"images/sample_image_{i}": wandb.Image(img)})
 
     print(f"Train: {train_metrics}")
     print(f"Test: {test_metrics}")
