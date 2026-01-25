@@ -10,7 +10,7 @@ from utils.losses import vp_score_loss
 from utils.checkpoint_manager import CheckpointManager
 from generators.vp_sampler import vp_sampler
 
-BASE_WORK_DIR = os.environ.get("BASE_WORK_DIR", ".")
+BASE_WORK_DIR = os.environ.get("BASE_WORK_DIR")
 CHECKPOINT_DIR = os.path.join(BASE_WORK_DIR, "checkpoints")
 
 def beta_t(t, beta_min, beta_max):
@@ -26,7 +26,7 @@ def marginal_sigma(t, beta_min, beta_max):
     return torch.sqrt(1.0 - marginal_alpha(t, beta_min, beta_max) ** 2)
 
 def train_vp(config):
-    run_id = config.get("run_id", uuid.uuid4().hex[:8])
+    run_id = config.get("run_id", str(uuid.uuid4().hex[:8]))
 
     wandb.init(
         project="diffusion-score-matching",
