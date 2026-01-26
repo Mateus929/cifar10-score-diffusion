@@ -12,6 +12,6 @@ def dsm_loss_fixed_lambda(score_pred, epsilon, sigma):
     return loss
 
 def ncsn_loss(score_noisy, epsilon, sigma):
-    diff = score_noisy + epsilon
+    diff = sigma * score_noisy + epsilon
     loss = 0.5 * (diff ** 2).mean(dim=(1, 2, 3))
     return loss.mean()

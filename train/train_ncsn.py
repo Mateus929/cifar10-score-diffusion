@@ -4,7 +4,7 @@ import uuid
 
 from generators.ncsn_sampler import nscn_sampler
 from models.NSCNnet import NSCNModel
-from utils.data_loader import load_cifar10
+from utils.data_loader import load_cifar10_01
 from utils.eval import get_metric_scores
 from utils.losses import ncsn_loss
 import wandb
@@ -42,7 +42,7 @@ def train_ncsn(config):
 
     s = NSCNModel().to(device)
     optimizer = torch.optim.Adam(s.parameters(), lr=config["lr"])
-    train_loader, test_loader = load_cifar10(batch_size=config.get("batch_size", 128))
+    train_loader, test_loader = load_cifar10_01(batch_size=config.get("batch_size", 128))
 
     checkpoint_manager = CheckpointManager(
         base_dir=CHECKPOINT_DIR,
@@ -74,7 +74,7 @@ def train_ncsn(config):
             epsilon = torch.randn_like(x)
             x_noisy = x + epsilon * sigma
 
-            y = s(x_noisy) ## s(x_noisy, sigma) is parametrized by s(x_noisy) / sigma and taken into account in loss
+            y = s(x_noisy, sigma)
 
             loss = ncsn_loss(y, epsilon, sigma)
             loss.backward()

@@ -34,7 +34,8 @@ def nscn_sampler(model, config, device):
         for level in range(0, L):
             step_size = step_size_factor * ((sigmas[level] / sigma_min) ** 2)
             for _ in range(n_steps_per_sigma):
-                score = model(x) / sigmas[level]
+                sigma_level = sigmas[level].expand(cur_bs)
+                score = model(x, sigma_level)
                 z = torch.randn_like(x)
                 x = x + step_size * score + torch.sqrt(2 * step_size) * z
 
