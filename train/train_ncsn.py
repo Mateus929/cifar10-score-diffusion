@@ -29,11 +29,16 @@ def train_ncsn(config):
     sigma_min = config.get("sigma_min", 0.01)
     sigma_max = config.get("sigma_max", 1.0)
     L = config.get("L", 10)
-    sigmas = sigma_max * (sigma_min / sigma_max) ** (np.arange(L) / (L - 1))
 
     total_epochs = config["epochs"]
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    sigmas = torch.tensor(
+        sigma_max * (sigma_min / sigma_max) ** (np.arange(L) / (L - 1)),
+        dtype=torch.float32,
+        device=device
+    )
 
     s = NSCNModel().to(device)
     optimizer = torch.optim.Adam(s.parameters(), lr=config["lr"])
@@ -64,7 +69,7 @@ def train_ncsn(config):
             x = x.to(device)
 
             indices = torch.randint(0, L, (x.size(0),), device=x.device)
-            sigma = torch.tensor(sigmas, device=x.device)[indices].view(-1, 1, 1, 1)
+            sigma = sigmas[indices].view(-1, 1, 1, 1)
 
             epsilon = torch.randn_like(x)
             x_noisy = x + epsilon * sigma
