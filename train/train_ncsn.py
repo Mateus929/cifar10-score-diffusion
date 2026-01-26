@@ -35,7 +35,7 @@ def train_ncsn(config):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    s = NSCNModel()
+    s = NSCNModel().to(device)
     optimizer = torch.optim.Adam(s.parameters(), lr=config["lr"])
     train_loader, test_loader = load_cifar10(batch_size=config.get("batch_size", 128))
 
@@ -63,7 +63,8 @@ def train_ncsn(config):
             optimizer.zero_grad()
             x = x.to(device)
 
-            sigma = torch.tensor(sigmas[np.random.randint(0, L, size=x.size(0))], device=x.device).view(-1,1,1,1)
+            indices = torch.randint(0, L, (x.size(0),), device=x.device)
+            sigma = torch.tensor(sigmas, device=x.device)[indices].view(-1, 1, 1, 1)
 
             epsilon = torch.randn_like(x)
             x_noisy = x + epsilon * sigma
