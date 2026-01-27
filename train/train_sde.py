@@ -90,6 +90,8 @@ def train_sde(config):
     if config.get('eval', False):
         evaluate_sde(score_model, config, data_loader, test_loader, log_wandb=True)
 
+    return score_model
+
 def evaluate_sde(model, config, train_loader=None, test_loader=None, log_wandb=False):
     """
     Generates fake images and calculates FID/IS metrics against real data.
