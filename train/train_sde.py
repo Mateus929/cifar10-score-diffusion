@@ -6,7 +6,6 @@ import torch
 
 import wandb
 from torch.optim import Adam
-import tqdm
 
 from generators.sde_sampler import sample_many_dsm
 from models.diffusion_scorenet import ScoreNet
@@ -60,8 +59,8 @@ def train_sde(config):
 
     print("Starting training from epoch ", start_epoch)
 
-    tqdm_epoch = tqdm.notebook.trange(start_epoch, n_epochs)
-    for epoch in tqdm_epoch:
+    for epoch in range(start_epoch, n_epochs):
+      print("Starting epoch ", epoch)
       avg_loss = 0.
       num_items = 0
       for x, _ in data_loader:
@@ -80,7 +79,7 @@ def train_sde(config):
           }
       )
 
-      tqdm_epoch.set_description('Average Loss: {:5f}'.format(avg_loss / num_items))
+      print('Average Loss: {:5f}'.format(avg_loss / num_items))
 
       if (epoch + 1) % config.get("save_every", 5) == 0:
           models = {'s': score_model}

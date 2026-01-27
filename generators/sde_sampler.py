@@ -1,6 +1,5 @@
 import numpy as np
 import torch
-import tqdm
 
 from utils.diffusion_utils import marginal_prob_std, diffusion_coeff
 
@@ -31,7 +30,7 @@ def sde_sampler(score_model, config,
     step_size = time_steps[0] - time_steps[1]
     x = init_x
     with torch.no_grad():
-        for time_step in tqdm.notebook.tqdm(time_steps):
+        for time_step in time_steps:
             batch_time_step = torch.ones(batch_size, device=device) * time_step
 
             grad = score_model(x, batch_time_step)
