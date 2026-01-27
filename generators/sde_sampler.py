@@ -56,6 +56,7 @@ def sample_many_dsm(score_model, config):
 
     while cur_total < total:
         cur_batch_size = min(batch_size, total - cur_total)
+        print(f"Generating {cur_batch_size} fake images...")
         config["batch_size"] = cur_batch_size
         cur_total += cur_batch_size
 

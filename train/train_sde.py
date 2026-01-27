@@ -98,6 +98,7 @@ def evaluate_sde(model, config, train_loader=None, test_loader=None, log_wandb=F
     """
     model.eval()
     device = next(model.parameters()).device
+    print("Generating fake images...")
     fake_images = sample_many_dsm(model, config)
 
     print("Calculating FID and IS scores...")
