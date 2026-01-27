@@ -1,5 +1,6 @@
 import os
 import uuid
+from functools import partial
 
 import torch
 
@@ -7,7 +8,7 @@ import wandb
 from torch.optim import Adam
 import tqdm
 
-from generators.sde_sampler import sde_sampler, sample_many_dsm
+from generators.sde_sampler import sample_many_dsm
 from models.diffusion_scorenet import ScoreNet
 from utils.checkpoint_manager import CheckpointManager
 from utils.data_loader import load_cifar10
@@ -30,7 +31,9 @@ def train_sde(config):
         resume="allow"
     )
 
-    score_model = torch.nn.DataParallel(ScoreNet(marginal_prob_std=marginal_prob_std))
+    sigma = config.get("sigma", 25.0)
+    marginal_prob_std_fn = partial(marginal_prob_std, sigma=sigma)
+    score_model = torch.nn.DataParallel(ScoreNet(marginal_prob_std=marginal_prob_std_fn))
     device = config.get("device", "cuda")
     score_model = score_model.to(device)
 
@@ -63,7 +66,7 @@ def train_sde(config):
       num_items = 0
       for x, _ in data_loader:
         x = x.to(device)
-        loss = loss_diffusion(score_model, x, marginal_prob_std)
+        loss = loss_diffusion(score_model, x, marginal_prob_std_fn)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
