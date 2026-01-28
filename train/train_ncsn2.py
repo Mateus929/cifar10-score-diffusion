@@ -7,7 +7,7 @@ import torch
 import os
 
 from generators.ncsn_sampler_v2 import sample_many_ncsn
-from models.refinet import RefineNet
+from models.simple_refinet import RefineNet
 
 from utils.checkpoint_manager import CheckpointManager
 from utils.data_loader import load_cifar10
