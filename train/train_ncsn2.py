@@ -88,6 +88,7 @@ def train_ncsn(config):
             checkpoint_manager.save_checkpoint(epoch, models, optimizers, {})
     if config.get('eval', False):
         evaluate_ncsn(model, config, train_dataloader, test_dataloader, log_wandb=True)
+    return model
 
 def evaluate_ncsn(model, config, train_loader=None, test_loader=None, log_wandb=False):
     """
