@@ -3,7 +3,7 @@ from models.layers import ResidualBlock, RefineNetBlock, CondInstanceNorm, Adapt
 
 
 class RefineNet(nn.Module):
-    def __init__(self, in_channels, hidden_channels=(128, 256, 512, 1024), n_noise_scale=10):
+    def __init__(self, in_channels, hidden_channels = (64, 128, 256, 512), n_noise_scale=10):
         super().__init__()
         self.res1 = ResidualBlock(in_channels, hidden_channels[0], n_layers=2, downsample='stride')
         self.res2 = ResidualBlock(hidden_channels[0], hidden_channels[1], n_layers=2, downsample='dilation', dilation=2)
