@@ -22,7 +22,7 @@ def score_matching_loss(model, x, noise_scales):
 
     noise = torch.randn_like(x)
     x_noisy = q_sample(x, noise_scale_batch, noise=noise)
-    score = model(x_noisy, noise_scale_idx)
+    score = model(x_noisy, noise_scale_batch)
 
     loss = F.mse_loss(noise_scale_batch * score, -noise)
 

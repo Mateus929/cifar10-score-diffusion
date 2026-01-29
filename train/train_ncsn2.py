@@ -7,7 +7,7 @@ import torch
 import os
 
 from generators.ncsn_sampler_v2 import sample_many_ncsn
-from models.simple_refinet import RefineNet
+from models.NSCNnet import NSCNModel
 
 from utils.checkpoint_manager import CheckpointManager
 from utils.data_loader import load_cifar10
@@ -39,11 +39,7 @@ def train_ncsn(config):
 
     train_dataloader, test_dataloader = load_cifar10(batch_size=batch_size)
 
-    model = RefineNet(
-        in_channels=3,
-        hidden_channels=(128, 256, 512, 1024),
-        n_noise_scale=L
-    ).to(device)
+    model = NSCNModel().to(device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     noise_scales = linear_noise_scale(start=sigma_max, end=sigma_min, length=L).to(device)
